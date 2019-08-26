@@ -5,7 +5,7 @@
 #
 
 # Name of this project
-name: terraform-aws-ecs-traefik-service
+name: terraform-aws-ecs-cluster-traefik
 
 # Tags of this project
 tags:
