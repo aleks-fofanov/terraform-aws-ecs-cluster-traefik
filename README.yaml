@@ -1,0 +1,206 @@
+---
+#
+# This is the canonical configuration for the `README.md`
+# Run `make readme` to rebuild the `README.md`
+#
+
+# Name of this project
+name: terraform-aws-ecs-traefik-service
+
+# Tags of this project
+tags:
+  - aws
+  - terraform
+  - terraform-modules
+  - ecs
+  - cluster
+  - traefik
+
+# Logo for this project
+#logo: docs/logo.png
+
+# License of this project
+license: "APACHE2"
+
+# Canonical GitHub repo
+github_repo: aleks-fofanov/terraform-aws-ecs-cluster-traefik
+
+# Badges to display
+badges:
+  - name: "Build Status"
+    image: "https://travis-ci.org/aleks-fofanov/terraform-aws-ecs-cluster-traefik.svg?branch=master"
+    url: "https://travis-ci.org/aleks-fofanov/terraform-aws-ecs-cluster-traefik"
+  - name: "Latest Release"
+    image: "https://img.shields.io/github/release/aleks-fofanov/terraform-aws-ecs-cluster-traefik.svg"
+    url: "https://github.com/aleks-fofanov/terraform-aws-ecs-cluster-traefik/releases/latest"
+
+related:
+  - name: "terraform-aws-ecs-traefik-service"
+    description: "Terraform module to provision Traefik service in ECS"
+    url: "https://github.com/aleks-fofanov/terraform-aws-ecs-traefik-service"
+
+# Short description of this project
+description: |-
+  Terraform module to provision ECS cluster with [Traefik](https://traefik.io/) as an edge router
+
+introduction: |-
+  This module helps to provision production-ready ECS cluster for your workloads and all required infrastructure for the
+  cluster (VPC, subnets, ALB, EC2 autoscaling group etc).
+
+  Traefik service in ECS cluster is supposed to act as an edge router and route traffic to other containers in your
+  cluster based on their docker lables.
+
+  For more information on which docker labels to set on your container, see
+  [Traefik documentation](https://docs.traefik.io/configuration/backends/docker/#on-containers).
+
+  SSL termination is done on AWS ALB. Traefik tasks are launched with `awsvpc` network mode and needs
+  Internet access to connect to ECS API in order to discover containers in your ECS cluster.
+
+  **Implementation notes and Warnings**:
+  - If you decide not to use NAT instance or NAT Gateway for private subnets withing the VPC, EC2 ASG instances will be
+    launched in public subnets within the VPC as they need internet access to communicated with ECS API. Otherwise, the
+    instances will be launched in private subnets.
+  - If you decide to launch Traefik using `FARGATE` launch type, remember to assing public IP for Traefik so the Traefik
+    image can be pulled from Dockerhub.
+  - There are other networking-related caveates that you may encounter when launching your workloads within ECS cluster,
+    please get yourself acquainted with the
+    [Task Networking Considerations](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html#task-networking-considerations)
+    document to properly setup netwoking for your tasks.
+
+  This module is backed by best of breed terraform modules maintained by [Cloudposse](https://github.com/cloudposse).
+
+# How to use this project
+usage: |-
+  This example creates an ECS cluster with Traefik service launched using `FARGATE`.
+
+  ```hcl
+  module "ecs_cluster" {
+    source    = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-cluster-traefik.git?ref=master"
+    name      = "traefik"
+    namespace = "cp"
+    stage     = "prod"
+
+    vpc_nat_gateway_enabled     = "false"
+    vpc_map_public_ip_on_launch = "false"
+
+    alb_certificate_arn                  = "XXXXXXXXXXX"
+    alb_http_enabled                     = "true"
+    alb_https_enabled                    = "true"
+    alb_http_to_https_redirect_enabled   = "true"
+    alb_http_to_https_redirect_permanent = "true"
+    alb_access_logs_enabled              = "false"
+
+    traefik_launch_type      = "FARGATE"
+    traefik_assign_public_ip = "true"
+  }
+  ```
+
+examples: |-
+  ### Example With [Traefik Dashboard](https://docs.traefik.io/configuration/api/) and Autoscaling Enabled
+
+  This example launches a Traefik setvice in ECS using `FARGATE` with enabled dashboard, API endpoints and autoscaling.
+  Basic auth is enabled by default for both API and dashboard. You can use `openssl` to generate password for
+  basic auth:
+  ```bash
+  openssl passwd -apr1
+  ```
+
+  ```hcl
+  module "ecs_cluster" {
+    source    = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-cluster-traefik.git?ref=master"
+    name      = "traefik"
+    namespace = "cp"
+    stage     = "prod"
+
+    vpc_nat_gateway_enabled     = "false"
+    vpc_map_public_ip_on_launch = "false"
+
+    alb_certificate_arn                  = "XXXXXXXXXXX"
+    alb_http_enabled                     = "true"
+    alb_https_enabled                    = "true"
+    alb_http_to_https_redirect_enabled   = "true"
+    alb_http_to_https_redirect_permanent = "true"
+    alb_access_logs_enabled              = "false"
+
+    traefik_launch_type      = "FARGATE"
+    traefik_assign_public_ip = "true"
+
+    traefik_dashboard_enabled             = "true"
+    traefik_dashboard_host                = "traefik.example.com"
+    traefik_dashboard_basic_auth_user     = "admin"
+    traefik_dashboard_basic_auth_password = "$$$apr1$$$Rj21EpGU$$$KCwTHCbAIVhw0BiSdU4Me0"
+
+    traefik_autoscaling_enabled             = "true"
+    traefik_autoscaling_dimension           = "cpu"
+    traefik_autoscaling_min_capacity        = "1"
+    traefik_autoscaling_max_capacity        = "3"
+    traefik_autoscaling_scale_up_cooldown   = "60"
+    traefik_autoscaling_scale_down_cooldown = "60"
+
+    traefik_ecs_alarms_enabled                        = "true"
+    traefik_ecs_alarms_cpu_utilization_high_threshold = "20"
+    traefik_ecs_alarms_cpu_utilization_low_threshold  = "10"
+  }
+  ```
+
+  ### Complete Example
+
+  This example:
+
+  * Launches Traefik service in ECS using FARGATE with autoscaling
+  * Enables Traefik API and dashboard
+  * Enables ALB target group alarms
+  * Launches EC2 autoscaling group with minimum 2 instances for your workloads
+  *
+
+  ```hcl
+  module "ecs_cluster" {
+    source    = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-cluster-traefik.git?ref=master"
+    name      = "traefik"
+    namespace = "cp"
+    stage     = "prod"
+
+    vpc_nat_gateway_enabled     = "false"
+    vpc_map_public_ip_on_launch = "false"
+
+    ec2_asg_enabled                  = "true"
+    ec2_asg_instance_type            = "t3.large"
+    ec2_asg_autoscaling_min_capacity = "2"
+
+    alb_certificate_arn                  = "XXXXXXXXXXX"
+    alb_http_enabled                     = "true"
+    alb_https_enabled                    = "true"
+    alb_http_to_https_redirect_enabled   = "true"
+    alb_http_to_https_redirect_permanent = "true"
+    alb_access_logs_enabled              = "false"
+    alb_target_group_alarms_enabled      = "true"
+
+    traefik_launch_type      = "FARGATE"
+    traefik_assign_public_ip = "true"
+
+    traefik_dashboard_enabled             = "true"
+    traefik_dashboard_host                = "traefik.example.com"
+    traefik_dashboard_basic_auth_user     = "admin"
+    traefik_dashboard_basic_auth_password = "$$$apr1$$$Rj21EpGU$$$KCwTHCbAIVhw0BiSdU4Me0"
+
+    traefik_autoscaling_enabled             = "true"
+    traefik_autoscaling_dimension           = "cpu"
+    traefik_autoscaling_min_capacity        = "1"
+    traefik_autoscaling_max_capacity        = "3"
+    traefik_autoscaling_scale_up_cooldown   = "60"
+    traefik_autoscaling_scale_down_cooldown = "60"
+
+    traefik_ecs_alarms_enabled                        = "true"
+    traefik_ecs_alarms_cpu_utilization_high_threshold = "20"
+    traefik_ecs_alarms_cpu_utilization_low_threshold  = "10"
+  }
+  ```
+
+include:
+  - "docs/targets.md"
+  - "docs/terraform.md"
+
+# Contributors to this project
+contributors:
+  - name: "Aleksandr Fofanov"
+    github: "aleks-fofanov"
