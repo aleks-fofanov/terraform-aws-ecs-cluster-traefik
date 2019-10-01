@@ -383,7 +383,7 @@ data "aws_alb_target_group" "traefik" {
 }
 
 module "traefik" {
-  source     = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-traefik-service.git?ref=tags/0.1.0"
+  source     = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-traefik-service.git?ref=tags/0.1.1"
   attributes = ["${compact(concat(var.attributes, list("traefik")))}"]
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
