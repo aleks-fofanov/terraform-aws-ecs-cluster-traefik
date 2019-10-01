@@ -366,6 +366,10 @@ module "alb_target_group_alarms" {
   target_response_time_threshold = "${var.alb_target_group_alarms_response_time_threshold}"
   period                         = "${var.alb_target_group_alarms_period}"
   evaluation_periods             = "${var.alb_target_group_alarms_evaluation_periods}"
+
+  ok_actions                = "${var.alb_target_group_alarms_ok_actions}"
+  alarm_actions             = "${var.alb_target_group_alarms_alarm_actions}"
+  insufficient_data_actions = "${var.alb_target_group_alarms_insufficient_data_actions}"
 }
 
 #############################################################

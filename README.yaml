@@ -151,7 +151,6 @@ examples: |-
   * Enables Traefik API and dashboard
   * Enables ALB target group alarms
   * Launches EC2 autoscaling group with minimum 2 instances for your workloads
-  *
 
   ```hcl
   module "ecs_cluster" {
