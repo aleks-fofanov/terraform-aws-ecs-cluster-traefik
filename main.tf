@@ -111,6 +111,7 @@ locals {
 echo 'ECS_CLUSTER=${module.ecs.this_ecs_cluster_name}' >> /etc/ecs/ecs.config
 # Disable privileged containers.
 echo 'ECS_DISABLE_PRIVILEGED=${var.ecs_disable_privilegged_mode}' >> /etc/ecs/ecs.config
+echo 'ECS_AVAILABLE_LOGGING_DRIVERS=["awslogs","fluentd"]' >> /etc/ecs/ecs.config
 USERDATA
 
   # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html
@@ -299,7 +300,6 @@ module "alb" {
   health_check_timeout             = "10"
   health_check_healthy_threshold   = "2"
   health_check_unhealthy_threshold = "2"
-  health_check_interval            = "15"
   health_check_interval            = "15"
 
   access_logs_enabled                     = "${var.alb_access_logs_enabled}"
