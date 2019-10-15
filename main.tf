@@ -18,10 +18,6 @@ module "default_label" {
 
 data "aws_region" "current" {}
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 #############################################################
 # Locals
 #############################################################
@@ -60,7 +56,7 @@ module "dynamic_subnets" {
   stage      = "${var.stage}"
   tags       = "${var.tags}"
 
-  availability_zones      = "${data.aws_availability_zones.available.names}"
+  availability_zones      = ["${var.vpc_availability_zones}"]
   vpc_id                  = "${module.vpc.vpc_id}"
   igw_id                  = "${module.vpc.igw_id}"
   cidr_block              = "${var.vpc_cidr_block}"

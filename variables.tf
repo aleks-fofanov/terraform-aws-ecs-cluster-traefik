@@ -40,6 +40,11 @@ variable "vpc_cidr_block" {
   description = "VPC CIDR block"
 }
 
+variable "vpc_availability_zones" {
+  type        = "list"
+  description = "List of Availability Zones where subnets will be created"
+}
+
 variable "vpc_nat_gateway_enabled" {
   type        = "string"
   default     = "true"

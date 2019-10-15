@@ -331,6 +331,7 @@ Available targets:
 | traefik_task_memory | The amount of RAM to allow traefik container to use in MB. (If FARGATE launch type is used below, this must be a supported Memory size from the table here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-cpu-memory-error.html) | string | `512` | no |
 | traefik_task_memory_reservation | The amount of RAM (Soft Limit) to allow traefik container to use in MB. This value must be less than container_memory if set | string | `128` | no |
 | traefik_volumes | Task volume definitions as list of maps | list | `<list>` | no |
+| vpc_availability_zones | List of Availability Zones where subnets will be created | list | - | yes |
 | vpc_cidr_block | VPC CIDR block | string | `10.10.0.0/16` | no |
 | vpc_map_public_ip_on_launch | Instances launched into a public subnet should be assigned a public IP address | string | `true` | no |
 | vpc_max_subnet_count | Sets the maximum amount of subnets to deploy. 0 will deploy a subnet for every provided availablility zone (in availability_zones variable) within the region | string | `0` | no |
