@@ -68,6 +68,7 @@ module "dynamic_subnets" {
   nat_instance_enabled    = "${var.vpc_nat_instance_enabled}"
   nat_instance_type       = "${var.vpc_nat_instance_type}"
   map_public_ip_on_launch = "${var.vpc_map_public_ip_on_launch}"
+  max_subnet_count        = "${var.vpc_max_subnet_count}"
 }
 
 #############################################################

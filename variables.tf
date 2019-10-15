@@ -64,6 +64,12 @@ variable "vpc_map_public_ip_on_launch" {
   description = "Instances launched into a public subnet should be assigned a public IP address"
 }
 
+variable "vpc_max_subnet_count" {
+  type        = "string"
+  default     = "0"
+  description = "Sets the maximum amount of subnets to deploy. 0 will deploy a subnet for every provided availablility zone (in availability_zones variable) within the region"
+}
+
 variable "ec2_asg_enabled" {
   type        = "string"
   default     = "false"

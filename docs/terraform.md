@@ -138,6 +138,7 @@
 | traefik_volumes | Task volume definitions as list of maps | list | `<list>` | no |
 | vpc_cidr_block | VPC CIDR block | string | `10.10.0.0/16` | no |
 | vpc_map_public_ip_on_launch | Instances launched into a public subnet should be assigned a public IP address | string | `true` | no |
+| vpc_max_subnet_count | Sets the maximum amount of subnets to deploy. 0 will deploy a subnet for every provided availablility zone (in availability_zones variable) within the region | string | `0` | no |
 | vpc_nat_gateway_enabled | Flag to enable/disable NAT Gateways to allow servers in the private subnets to access the Internet | string | `true` | no |
 | vpc_nat_instance_enabled | Flag to enable/disable NAT Instances to allow servers in the private subnets to access the Internet | string | `false` | no |
 | vpc_nat_instance_type | NAT Instance type | string | `t3.micro` | no |
