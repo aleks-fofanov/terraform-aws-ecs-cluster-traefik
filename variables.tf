@@ -118,33 +118,75 @@ variable "ec2_asg_ebs_optimized" {
 }
 
 variable "ec2_asg_block_device_mappings" {
-  description = "Specify volumes to attach to the instance in ASG besides the volumes specified by the AMI"
-  type        = list(string)
-  default     = []
+  description = "Specify volumes to attach to the instance besides the volumes specified by the AMI"
+
+  type = list(object({
+    device_name  = string
+    no_device    = bool
+    virtual_name = string
+    ebs = object({
+      delete_on_termination = bool
+      encrypted             = bool
+      iops                  = number
+      kms_key_id            = string
+      snapshot_id           = string
+      volume_size           = number
+      volume_type           = string
+    })
+  }))
+
+  default = []
 }
 
 variable "ec2_asg_instance_market_options" {
-  description = "The market (purchasing) option for the instances in ASG"
-  type        = list(string)
-  default     = []
+  description = "The market (purchasing) option for the instances"
+
+  type = object({
+    market_type = string
+    spot_options = object({
+      block_duration_minutes         = number
+      instance_interruption_behavior = string
+      max_price                      = number
+      spot_instance_type             = string
+      valid_until                    = string
+    })
+  })
+
+  default = null
 }
 
 variable "ec2_asg_placement" {
-  description = "The placement specifications of the instances in ASG"
-  type        = list(string)
-  default     = []
+  description = "The placement specifications of the instances"
+
+  type = object({
+    affinity          = string
+    availability_zone = string
+    group_name        = string
+    host_id           = string
+    tenancy           = string
+  })
+
+  default = null
 }
 
 variable "ec2_asg_credit_specification" {
-  description = "Customize the credit specification of the instances in ASG"
-  type        = list(string)
-  default     = []
+  description = "Customize the credit specification of the instances"
+
+  type = object({
+    cpu_credits = string
+  })
+
+  default = null
 }
 
 variable "ec2_asg_elastic_gpu_specifications" {
-  description = "Specifications of Elastic GPU to attach to the instances in ASG"
-  type        = list(string)
-  default     = []
+  description = "Specifications of Elastic GPU to attach to the instances"
+
+  type = object({
+    type = string
+  })
+
+  default = null
 }
 
 variable "ec2_asg_disable_api_termination" {
@@ -416,8 +458,9 @@ variable "alb_https_ingress_prefix_list_ids" {
 }
 
 variable "alb_https_ssl_policy" {
-  description = "The name of the SSL Policy for the listener."
-  default     = "ELBSecurityPolicy-2015-05"
+  description = "The name of the SSL Policy for the listener. See https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html"
+  default     = "ELBSecurityPolicy-TLS-1-2-2017-01"
+  type        = string
 }
 
 variable "alb_http_to_https_redirect_enabled" {
@@ -519,19 +562,19 @@ variable "alb_target_group_alarms_evaluation_periods" {
 variable "alb_target_group_alarms_alarm_actions" {
   type        = list(string)
   description = "A list of ARNs (i.e. SNS Topic ARN) to execute when ALB Target Group alarms transition into an ALARM state from any other state"
-  default     = []
+  default     = [""]
 }
 
 variable "alb_target_group_alarms_ok_actions" {
   type        = list(string)
   description = "A list of ARNs (i.e. SNS Topic ARN) to execute when ALB Target Group alarms transition into an OK state from any other state"
-  default     = []
+  default     = [""]
 }
 
 variable "alb_target_group_alarms_insufficient_data_actions" {
   type        = list(string)
   description = "A list of ARNs (i.e. SNS Topic ARN) to execute when ALB Target Group alarms transition into an INSUFFICIENT_DATA state from any other state"
-  default     = []
+  default     = [""]
 }
 
 variable "traefik_launch_type" {
@@ -661,20 +704,28 @@ variable "traefik_deployment_minimum_healthy_percent" {
 }
 
 variable "traefik_mount_points" {
-  type        = list(string)
+  type = list(object({
+    containerPath = string
+    sourceVolume  = string
+  }))
+
   description = "Container mount points. This is a list of maps, where each map should contain a `containerPath` and `sourceVolume`"
-  default     = []
-  #default     = [
-  #  {
-  #    containerPath  = "/tmp"
-  #    sourceVolume = "test-volume"
-  #  }
-  #]
+  default     = null
 }
 
 variable "traefik_volumes" {
-  type        = list(string)
-  description = "Task volume definitions as list of maps"
+  type = list(object({
+    host_path = string
+    name      = string
+    docker_volume_configuration = list(object({
+      autoprovision = bool
+      driver        = string
+      driver_opts   = map(string)
+      labels        = map(string)
+      scope         = string
+    }))
+  }))
+  description = "Task volume definitions as list of configuration objects"
   default     = []
 }
 

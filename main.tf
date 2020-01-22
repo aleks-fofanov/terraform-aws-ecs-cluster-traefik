@@ -25,8 +25,8 @@ data "aws_region" "current" {
 
 locals {
   enable_http_on_alb       = var.alb_http_enabled && var.alb_https_enabled && var.alb_http_to_https_redirect_enabled ? false : var.alb_http_enabled
-  redirect_resources_count = local.enable_http_on_alb ? 1 : 0
-  redirect_code            = var.alb_http_to_https_redirect_permanent ? 302 : 301
+  redirect_resources_count = local.enable_http_on_alb == false ? 1 : 0
+  redirect_code            = var.alb_http_to_https_redirect_permanent ? "302" : "301"
 
   ec2_asg_resources_count = var.ec2_asg_enabled ? 1 : 0
   ec2_nat_setup           = var.vpc_nat_gateway_enabled || var.vpc_nat_instance_enabled
@@ -111,22 +111,16 @@ echo 'ECS_CLUSTER=${module.ecs.this_ecs_cluster_name}' >> /etc/ecs/ecs.config
 echo 'ECS_DISABLE_PRIVILEGED=${var.ecs_disable_privilegged_mode}' >> /etc/ecs/ecs.config
 echo 'ECS_AVAILABLE_LOGGING_DRIVERS=["awslogs","fluentd"]' >> /etc/ecs/ecs.config
 USERDATA
-
-  # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html
-  vpc_subnets_ids = {
-    private = module.dynamic_subnets.private_subnet_ids
-    public  = module.dynamic_subnets.public_subnet_ids
-  }
 }
 
 module "ecs_instance_label" {
   source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.16.0"
-  attributes = [compact(concat(var.attributes, ["ecs", "instance"]))]
+  attributes = compact(concat(var.attributes, ["ecs", "instance"]))
   delimiter  = var.delimiter
   name       = var.name
   namespace  = var.namespace
   stage      = var.stage
-  tags       = merge({
+  tags = merge({
     "Cluster" = module.ecs.this_ecs_cluster_name
   }, var.tags)
 }
@@ -200,7 +194,7 @@ module "autoscaling_group" {
   stage      = var.stage
   tags       = module.ecs_instance_label.tags
 
-  security_group_ids = [var.ec2_asg_security_group_ids, aws_security_group.ecs_instance[0].id]
+  security_group_ids = compact(concat(var.ec2_asg_security_group_ids, [aws_security_group.ecs_instance[0].id]))
   subnet_ids         = local.ec2_nat_setup ? module.dynamic_subnets.private_subnet_ids : module.dynamic_subnets.public_subnet_ids
 
   image_id                             = data.aws_ami.amazon_linux_ecs[0].id
@@ -353,9 +347,7 @@ module "alb_target_group_alarms" {
   stage      = var.stage
   tags       = var.tags
 
-  alb_name                       = module.alb.alb_name
   alb_arn_suffix                 = module.alb.alb_arn_suffix
-  target_group_name              = data.aws_alb_target_group.default.name
   target_group_arn_suffix        = data.aws_alb_target_group.default.arn_suffix
   target_3xx_count_threshold     = var.alb_target_group_alarms_3xx_threshold
   target_4xx_count_threshold     = var.alb_target_group_alarms_4xx_threshold
@@ -364,9 +356,15 @@ module "alb_target_group_alarms" {
   period                         = var.alb_target_group_alarms_period
   evaluation_periods             = var.alb_target_group_alarms_evaluation_periods
 
-  ok_actions                = var.alb_target_group_alarms_ok_actions
-  alarm_actions             = var.alb_target_group_alarms_alarm_actions
-  insufficient_data_actions = var.alb_target_group_alarms_insufficient_data_actions
+  # https://github.com/cloudposse/terraform-aws-alb-target-group-cloudwatch-sns-alarms/pull/18
+  ok_actions                = [aws_sns_topic.default.arn]
+  alarm_actions             = [aws_sns_topic.default.arn]
+  insufficient_data_actions = [aws_sns_topic.default.arn]
+  notify_arns               = [aws_sns_topic.default.arn]
+}
+
+resource "aws_sns_topic" "default" {
+  name = "test"
 }
 
 #############################################################
@@ -375,7 +373,7 @@ module "alb_target_group_alarms" {
 
 module "traefik" {
   source     = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-traefik-service.git?ref=terraform012_migration"
-  attributes = [compact(concat(var.attributes, ["traefik"]))]
+  attributes = compact(concat(var.attributes, ["traefik"]))
   delimiter  = var.delimiter
   name       = var.name
   namespace  = var.namespace
