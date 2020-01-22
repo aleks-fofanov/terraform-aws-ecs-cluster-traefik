@@ -26,7 +26,7 @@ data "aws_region" "current" {
 locals {
   enable_http_on_alb       = var.alb_http_enabled && var.alb_https_enabled && var.alb_http_to_https_redirect_enabled ? false : var.alb_http_enabled
   redirect_resources_count = local.enable_http_on_alb ? 1 : 0
-  redirect_code            = var.alb_http_to_https_redirect_permanent ? "302" : "301"
+  redirect_code            = var.alb_http_to_https_redirect_permanent ? 302 : 301
 
   ec2_asg_resources_count = var.ec2_asg_enabled ? 1 : 0
   ec2_nat_setup           = var.vpc_nat_gateway_enabled || var.vpc_nat_instance_enabled
@@ -126,7 +126,9 @@ module "ecs_instance_label" {
   name       = var.name
   namespace  = var.namespace
   stage      = var.stage
-  tags       = merge({ "Cluster" = module.ecs.this_ecs_cluster_name }, var.tags)
+  tags       = merge({
+    "Cluster" = module.ecs.this_ecs_cluster_name
+  }, var.tags)
 }
 
 data "aws_iam_policy_document" "ecs_instance_assume_role_policy" {
@@ -199,7 +201,7 @@ module "autoscaling_group" {
   tags       = module.ecs_instance_label.tags
 
   security_group_ids = [var.ec2_asg_security_group_ids, aws_security_group.ecs_instance[0].id]
-  subnet_ids         = local.vpc_subnets_ids[local.ec2_nat_setup ? "private" : "public"]
+  subnet_ids         = local.ec2_nat_setup ? module.dynamic_subnets.private_subnet_ids : module.dynamic_subnets.public_subnet_ids
 
   image_id                             = data.aws_ami.amazon_linux_ecs[0].id
   instance_type                        = var.ec2_asg_instance_type
