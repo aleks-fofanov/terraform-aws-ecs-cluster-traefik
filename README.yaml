@@ -41,24 +41,31 @@ related:
 
 # Short description of this project
 description: |-
-  Terraform module to provision ECS cluster with [Traefik](https://traefik.io/) as an edge router
+  Terraform module to provision ECS cluster with [Traefik](https://traefik.io/) as an edge router.
+  This module supports [traefik v1.7](https://docs.traefik.io/v1.7/).
+
+  ### Terraform versions
+
+  Terraform 0.12. Pin module version to `~> 2.0`. Submit pull-requests to `master` branch.
+
+  Terraform 0.11. Pin module version to `~> 1.0`. Submit pull-requests to `terraform011` branch.
 
 introduction: |-
   This module helps to provision production-ready ECS cluster for your workloads and all required infrastructure for the
   cluster (VPC, subnets, ALB, EC2 autoscaling group etc).
 
-  Traefik service in ECS cluster is supposed to act as an edge router and route traffic to other containers in your
-  cluster based on their docker lables.
+  Traefik service in ECS cluster is supposed to act as an [edge router](https://docs.traefik.io/v1.7/#overview)
+  and route traffic to other containers in your cluster based on their docker lables.
 
   For more information on which docker labels to set on your container, see
-  [Traefik documentation](https://docs.traefik.io/configuration/backends/docker/#on-containers).
+  [Traefik documentation](https://docs.traefik.io/v1.7/configuration/backends/docker/#on-containers).
 
   SSL termination is done on AWS ALB. Traefik tasks are launched with `awsvpc` network mode and needs
   Internet access to connect to ECS API in order to discover containers in your ECS cluster.
 
   **Implementation notes and Warnings**:
   - If you decide not to use NAT instance or NAT Gateway for private subnets withing the VPC, EC2 ASG instances will be
-    launched in public subnets within the VPC as they need internet access to communicated with ECS API. Otherwise, the
+    launched in public subnets within the VPC as they need internet access to communicate with ECS API. Otherwise, the
     instances will be launched in private subnets.
   - If you decide to launch Traefik using `FARGATE` launch type, remember to assing public IP for Traefik so the Traefik
     image can be pulled from Dockerhub.
@@ -80,23 +87,24 @@ usage: |-
     namespace = "cp"
     stage     = "prod"
 
-    vpc_nat_gateway_enabled     = "false"
-    vpc_map_public_ip_on_launch = "false"
+    vpc_nat_gateway_enabled     = false
+    vpc_map_public_ip_on_launch = false
 
     alb_certificate_arn                  = "XXXXXXXXXXX"
-    alb_http_enabled                     = "true"
-    alb_https_enabled                    = "true"
-    alb_http_to_https_redirect_enabled   = "true"
-    alb_http_to_https_redirect_permanent = "true"
-    alb_access_logs_enabled              = "false"
+    alb_http_enabled                     = true
+    alb_https_enabled                    = true
+    alb_http_to_https_redirect_enabled   = true
+    alb_http_to_https_redirect_permanent = true
+    alb_access_logs_enabled              = false
 
     traefik_launch_type      = "FARGATE"
-    traefik_assign_public_ip = "true"
+    traefik_assign_public_ip = true
   }
   ```
 
 examples: |-
-  ### Example With [Traefik Dashboard](https://docs.traefik.io/configuration/api/) and Autoscaling Enabled
+  ### Example With [Traefik Dashboard](https://docs.traefik.io/v1.7/configuration/api/#dashboard-web-ui) and
+  Autoscaling Enabled
 
   This example launches a Traefik setvice in ECS using `FARGATE` with enabled dashboard, API endpoints and autoscaling.
   Basic auth is enabled by default for both API and dashboard. You can use `openssl` to generate password for
@@ -112,34 +120,34 @@ examples: |-
     namespace = "cp"
     stage     = "prod"
 
-    vpc_nat_gateway_enabled     = "false"
-    vpc_map_public_ip_on_launch = "false"
+    vpc_nat_gateway_enabled     = false
+    vpc_map_public_ip_on_launch = false
 
     alb_certificate_arn                  = "XXXXXXXXXXX"
-    alb_http_enabled                     = "true"
-    alb_https_enabled                    = "true"
-    alb_http_to_https_redirect_enabled   = "true"
-    alb_http_to_https_redirect_permanent = "true"
-    alb_access_logs_enabled              = "false"
+    alb_http_enabled                     = true
+    alb_https_enabled                    = true
+    alb_http_to_https_redirect_enabled   = true
+    alb_http_to_https_redirect_permanent = true
+    alb_access_logs_enabled              = false
 
     traefik_launch_type      = "FARGATE"
-    traefik_assign_public_ip = "true"
+    traefik_assign_public_ip = true
 
-    traefik_dashboard_enabled             = "true"
+    traefik_dashboard_enabled             = true
     traefik_dashboard_host                = "traefik.example.com"
     traefik_dashboard_basic_auth_user     = "admin"
     traefik_dashboard_basic_auth_password = "$$$apr1$$$Rj21EpGU$$$KCwTHCbAIVhw0BiSdU4Me0"
 
-    traefik_autoscaling_enabled             = "true"
+    traefik_autoscaling_enabled             = true
     traefik_autoscaling_dimension           = "cpu"
-    traefik_autoscaling_min_capacity        = "1"
-    traefik_autoscaling_max_capacity        = "3"
-    traefik_autoscaling_scale_up_cooldown   = "60"
-    traefik_autoscaling_scale_down_cooldown = "60"
+    traefik_autoscaling_min_capacity        = 1
+    traefik_autoscaling_max_capacity        = 3
+    traefik_autoscaling_scale_up_cooldown   = 60
+    traefik_autoscaling_scale_down_cooldown = 60
 
-    traefik_ecs_alarms_enabled                        = "true"
-    traefik_ecs_alarms_cpu_utilization_high_threshold = "20"
-    traefik_ecs_alarms_cpu_utilization_low_threshold  = "10"
+    traefik_ecs_alarms_enabled                        = true
+    traefik_ecs_alarms_cpu_utilization_high_threshold = 20
+    traefik_ecs_alarms_cpu_utilization_low_threshold  = 10
   }
   ```
 
@@ -159,39 +167,39 @@ examples: |-
     namespace = "cp"
     stage     = "prod"
 
-    vpc_nat_gateway_enabled     = "false"
-    vpc_map_public_ip_on_launch = "false"
+    vpc_nat_gateway_enabled     = false
+    vpc_map_public_ip_on_launch = false
 
-    ec2_asg_enabled                  = "true"
+    ec2_asg_enabled                  = true
     ec2_asg_instance_type            = "t3.large"
-    ec2_asg_autoscaling_min_capacity = "2"
+    ec2_asg_autoscaling_min_capacity = 2
 
     alb_certificate_arn                  = "XXXXXXXXXXX"
-    alb_http_enabled                     = "true"
-    alb_https_enabled                    = "true"
-    alb_http_to_https_redirect_enabled   = "true"
-    alb_http_to_https_redirect_permanent = "true"
-    alb_access_logs_enabled              = "false"
-    alb_target_group_alarms_enabled      = "true"
+    alb_http_enabled                     = true
+    alb_https_enabled                    = true
+    alb_http_to_https_redirect_enabled   = true
+    alb_http_to_https_redirect_permanent = true
+    alb_access_logs_enabled              = false
+    alb_target_group_alarms_enabled      = true
 
     traefik_launch_type      = "FARGATE"
-    traefik_assign_public_ip = "true"
+    traefik_assign_public_ip = true
 
-    traefik_dashboard_enabled             = "true"
+    traefik_dashboard_enabled             = true
     traefik_dashboard_host                = "traefik.example.com"
     traefik_dashboard_basic_auth_user     = "admin"
     traefik_dashboard_basic_auth_password = "$$$apr1$$$Rj21EpGU$$$KCwTHCbAIVhw0BiSdU4Me0"
 
-    traefik_autoscaling_enabled             = "true"
+    traefik_autoscaling_enabled             = true
     traefik_autoscaling_dimension           = "cpu"
-    traefik_autoscaling_min_capacity        = "1"
-    traefik_autoscaling_max_capacity        = "3"
-    traefik_autoscaling_scale_up_cooldown   = "60"
-    traefik_autoscaling_scale_down_cooldown = "60"
+    traefik_autoscaling_min_capacity        = 1
+    traefik_autoscaling_max_capacity        = 3
+    traefik_autoscaling_scale_up_cooldown   = 60
+    traefik_autoscaling_scale_down_cooldown = 60
 
-    traefik_ecs_alarms_enabled                        = "true"
-    traefik_ecs_alarms_cpu_utilization_high_threshold = "20"
-    traefik_ecs_alarms_cpu_utilization_low_threshold  = "10"
+    traefik_ecs_alarms_enabled                        = true
+    traefik_ecs_alarms_cpu_utilization_high_threshold = 20
+    traefik_ecs_alarms_cpu_utilization_low_threshold  = 10
   }
   ```
 
