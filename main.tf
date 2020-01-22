@@ -372,7 +372,7 @@ resource "aws_sns_topic" "default" {
 #############################################################
 
 module "traefik" {
-  source     = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-traefik-service.git?ref=terraform012_migration"
+  source     = "git::https://github.com/aleks-fofanov/terraform-aws-ecs-traefik-service.git?ref=tags/2.0.0"
   attributes = compact(concat(var.attributes, ["traefik"]))
   delimiter  = var.delimiter
   name       = var.name
