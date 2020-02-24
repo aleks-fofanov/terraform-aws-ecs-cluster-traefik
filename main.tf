@@ -120,7 +120,7 @@ module "ecs_instance_label" {
   name       = var.name
   namespace  = var.namespace
   stage      = var.stage
-  tags       = merge({
+  tags = merge({
     "Cluster" = module.ecs.this_ecs_cluster_name
   }, var.tags)
 }
@@ -256,7 +256,7 @@ module "autoscaling_group" {
 #############################################################
 
 module "alb" {
-  source     = "git::https://github.com/cloudposse/terraform-aws-alb.git?ref=tags/0.8.0"
+  source     = "git::https://github.com/cloudposse/terraform-aws-alb.git?ref=tags/0.9.0"
   attributes = var.attributes
   delimiter  = var.delimiter
   name       = var.name
@@ -333,6 +333,8 @@ resource "aws_security_group_rule" "http_ingress" {
 }
 
 data "aws_alb_target_group" "default" {
+  depends_on = [module.alb]
+
   arn = module.alb.default_target_group_arn
 }
 
@@ -378,7 +380,7 @@ module "traefik" {
   ecs_cluster_arn       = module.ecs.this_ecs_cluster_arn
   ecs_cluster_region    = data.aws_region.current.name
   alb_security_group_id = module.alb.security_group_id
-  alb_target_group_arn  = module.alb.default_target_group_arn
+  alb_target_group_arn  = data.aws_alb_target_group.default.arn
   vpc_id                = module.vpc.vpc_id
   subnet_ids            = module.dynamic_subnets.public_subnet_ids
 
