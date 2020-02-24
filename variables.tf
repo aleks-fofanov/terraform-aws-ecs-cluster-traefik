@@ -562,19 +562,19 @@ variable "alb_target_group_alarms_evaluation_periods" {
 variable "alb_target_group_alarms_alarm_actions" {
   type        = list(string)
   description = "A list of ARNs (i.e. SNS Topic ARN) to execute when ALB Target Group alarms transition into an ALARM state from any other state"
-  default     = [""]
+  default     = []
 }
 
 variable "alb_target_group_alarms_ok_actions" {
   type        = list(string)
   description = "A list of ARNs (i.e. SNS Topic ARN) to execute when ALB Target Group alarms transition into an OK state from any other state"
-  default     = [""]
+  default     = []
 }
 
 variable "alb_target_group_alarms_insufficient_data_actions" {
   type        = list(string)
   description = "A list of ARNs (i.e. SNS Topic ARN) to execute when ALB Target Group alarms transition into an INSUFFICIENT_DATA state from any other state"
-  default     = [""]
+  default     = []
 }
 
 variable "traefik_launch_type" {

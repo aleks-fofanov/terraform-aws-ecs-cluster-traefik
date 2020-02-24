@@ -120,7 +120,7 @@ module "ecs_instance_label" {
   name       = var.name
   namespace  = var.namespace
   stage      = var.stage
-  tags = merge({
+  tags       = merge({
     "Cluster" = module.ecs.this_ecs_cluster_name
   }, var.tags)
 }
@@ -339,7 +339,7 @@ data "aws_alb_target_group" "default" {
 module "alb_target_group_alarms" {
   enabled = var.alb_target_group_alarms_enabled
 
-  source     = "git::https://github.com/cloudposse/terraform-aws-alb-target-group-cloudwatch-sns-alarms.git?ref=tags/0.7.0"
+  source     = "git::https://github.com/cloudposse/terraform-aws-alb-target-group-cloudwatch-sns-alarms.git?ref=tags/0.8.0"
   attributes = var.attributes
   delimiter  = var.delimiter
   name       = var.name
@@ -356,15 +356,9 @@ module "alb_target_group_alarms" {
   period                         = var.alb_target_group_alarms_period
   evaluation_periods             = var.alb_target_group_alarms_evaluation_periods
 
-  # https://github.com/cloudposse/terraform-aws-alb-target-group-cloudwatch-sns-alarms/pull/18
-  ok_actions                = [aws_sns_topic.default.arn]
-  alarm_actions             = [aws_sns_topic.default.arn]
-  insufficient_data_actions = [aws_sns_topic.default.arn]
-  notify_arns               = [aws_sns_topic.default.arn]
-}
-
-resource "aws_sns_topic" "default" {
-  name = "test"
+  ok_actions                = var.alb_target_group_alarms_ok_actions
+  alarm_actions             = var.alb_target_group_alarms_alarm_actions
+  insufficient_data_actions = var.alb_target_group_alarms_insufficient_data_actions
 }
 
 #############################################################
